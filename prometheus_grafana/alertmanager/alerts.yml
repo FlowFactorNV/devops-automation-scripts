@@ -1,0 +1,51 @@
+groups:
+- name: alert_rules
+  rules:
+  - alert: InstanceDown
+    expr: up == 0
+    for: 1m
+    labels:
+      severity: "critical"
+    annotations:
+      summary: "Instance is down (instance {{ $labels.instance }})"
+      description: "{{ $labels.instance }} ({{ $labels.environment }} environment) is down"
+
+  - alert: HostOutOfMemory
+    expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 < 10
+    for: 5m
+    labels:
+      severity: "warning"
+    annotations:
+      summary: "Host out of memory (instance {{ $labels.instance }})"
+      description: "Node memory is filling up ({{ $value }}% left)"
+      #description: "Node memory is filling up (< 10% left)"
+
+  - alert: HostOutOfSwap
+    expr: node_memory_SwapFree_bytes / node_memory_SwapTotal_bytes * 100 < 25
+    for: 5m
+    labels:
+      severity: "warning"
+    annotations:
+      summary: "Host low on swap space (instance {{ $labels.instance }})"
+      description: "Node swap memory is filling up ({{ $value }}% left)"
+      #description: "Node swap memory is filling up (< 25% left)"
+
+  - alert: HostOutOfDiskSpace
+    expr: (node_filesystem_avail_bytes{mountpoint="/"}  * 100) / node_filesystem_size_bytes{mountpoint="/"} < 20
+    for: 5m
+    labels:
+      severity: "warning"
+    annotations:
+      summary: "Host out of disk space (instance {{ $labels.instance }})"
+      description: "Disk is almost full ({{ $value }}% left)"
+      #description: "Disk is almost full (< 20% left)"
+
+
+  - alert: HostHighCpuLoad
+    expr: (sum by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m]))) < 0.2
+    for: 5m
+    labels:
+      severity: "warning"
+    annotations:
+      summary: "Host high CPU load (instance {{ $labels.instance }})"
+      description: "CPU load is > 80%"
