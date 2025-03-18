@@ -1,0 +1,187 @@
+image:
+  name: hashicorp/terraform
+  # The entrypoint needs to be overridden to use Terraform commands in jobs
+  entrypoint: [""]
+
+variables:
+  DEV_TF_STATE_URL: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/dev
+  PRD_TF_STATE_URL: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/prd
+  GCLOUD_SA_KEY_FILE_NAME: gcp_service_account_key.json
+  DEV_GCLOUD_PROJECT_ID: <fill-in>
+  PRD_GCLOUD_PROJECT_ID: <fill-in>
+  DEV_GCLOUD_REGION: <fill-in>
+  PRD_GCLOUD_REGION: <fill-in>
+  RESOURCE_NAME_PREFIX: <fill-in>
+
+stages:
+  - init
+  - plan
+  - apply
+  - destroy
+
+before_script:
+  - cd infra
+
+.before_script_dev: &before_script_dev
+  before_script:
+    - cd infra
+    - echo "$DEV_GCLOUD_SA_KEY_B64" | base64 -d > $GCLOUD_SA_KEY_FILE_NAME
+
+.before_script_prod: &before_script_prd
+  before_script:
+    - cd infra
+    - echo "$PRD_GCLOUD_SA_KEY_B64" | base64 -d > $GCLOUD_SA_KEY_FILE_NAME
+
+########################################################################################################################
+# Development environment jobs
+########################################################################################################################
+
+init_dev:
+  stage: init
+  # Although the default of allow_failure is false, it needs to be explicit if there are other jobs depending on this
+  # job
+  allow_failure: false
+  script:
+    - GITLAB_USERNAME=$(echo $GITLAB_USERNAME_B64 | base64 -d)
+    - terraform init
+        -backend-config=address=${DEV_TF_STATE_URL}
+        -backend-config=lock_address=${DEV_TF_STATE_URL}/lock 
+        -backend-config=unlock_address=${DEV_TF_STATE_URL}/lock 
+        -backend-config=username=${GITLAB_USERNAME}
+        -backend-config=password=${GITLAB_ACCESS_TOKEN}
+        -backend-config=lock_method=POST 
+        -backend-config=unlock_method=DELETE 
+        -backend-config=retry_wait_min=5
+  artifacts:
+    paths:
+      # These folders contain provider plugins, backend config, etc. that need to be persisted between jobs
+      - ./**/.terraform/**
+      - ./**/*terraform*
+
+plan_dev:
+  stage: plan
+  dependencies:
+    - init_dev
+  <<: *before_script_dev
+  script:
+    - terraform plan
+        -out=tf_plan_dev
+        -var "google_credentials=$GCLOUD_SA_KEY_FILE_NAME"
+        -var "project_id=$DEV_GCLOUD_PROJECT_ID"
+        -var "project_region=$DEV_GCLOUD_REGION"
+        -var "resource_name_prefix=$RESOURCE_NAME_PREFIX"
+  artifacts:
+    paths:
+      # The plan file needs to be persisted for the apply job
+      - ./**/tf_plan_dev
+      - ./**/src.zip
+      - ./**/.terraform/**
+      - ./**/*terraform*
+
+apply_dev:
+  when: manual
+  stage: apply
+  dependencies:
+    - init_dev
+    - plan_dev
+  <<: *before_script_dev
+  script:
+    - terraform apply -auto-approve tf_plan_dev
+  artifacts:
+    paths:
+      - ./**/src.zip
+      - ./**/.terraform/**
+      - ./**/*terraform*
+
+destroy_dev:
+  when: manual
+  stage: destroy
+  dependencies:
+    - init_dev
+    - plan_dev
+    - apply_dev
+  <<: *before_script_dev
+  script:
+    - terraform destroy 
+        -auto-approve
+        -var "google_credentials=$GCLOUD_SA_KEY_FILE_NAME"
+        -var "project_id=$DEV_GCLOUD_PROJECT_ID"
+        -var "project_region=$DEV_GCLOUD_REGION"
+        -var "resource_name_prefix=$RESOURCE_NAME_PREFIX"
+
+########################################################################################################################
+# Production environment jobs
+########################################################################################################################
+
+init_prd:
+  stage: init
+  # Although the default of allow_failure is false, it needs to be explicit if there are other jobs depending on this
+  # job
+  allow_failure: false
+  script:
+    - GITLAB_USERNAME=$(echo $GITLAB_USERNAME_B64 | base64 -d) # CI/CD secrets have to be at least 8 characters long, that's why username is Base64 encoded
+    - terraform init
+        -backend-config=address=${PRD_TF_STATE_URL}
+        -backend-config=lock_address=${PRD_TF_STATE_URL}/lock 
+        -backend-config=unlock_address=${PRD_TF_STATE_URL}/lock 
+        -backend-config=username=${GITLAB_USERNAME}
+        -backend-config=password=${GITLAB_ACCESS_TOKEN}
+        -backend-config=lock_method=POST 
+        -backend-config=unlock_method=DELETE 
+        -backend-config=retry_wait_min=5
+  artifacts:
+    paths:
+      # These folders contain provider plugins, backend config, etc. that need to be persisted between jobs
+      - ./**/.terraform/**
+      - ./**/*terraform*
+
+plan_prd:
+  stage: plan
+  dependencies:
+    - init_prd
+  <<: *before_script_prd
+  script:
+    - terraform plan
+        -out=tf_plan_prd
+        -var "google_credentials=$GCLOUD_SA_KEY_FILE_NAME"
+        -var "project_id=$PRD_GCLOUD_PROJECT_ID"
+        -var "project_region=$PRD_GCLOUD_REGION"
+        -var "resource_name_prefix=$RESOURCE_NAME_PREFIX"
+  artifacts:
+    paths:
+      # The plan file needs to be persisted for the apply job
+      - ./**/tf_plan_prd
+      - ./**/src.zip # Source code compressed by Terraform
+      - ./**/.terraform/**
+      - ./**/*terraform*
+
+apply_prd:
+  when: manual
+  stage: apply
+  dependencies:
+    - init_prd
+    - plan_prd
+  <<: *before_script_prd
+  script:
+    - terraform apply -auto-approve tf_plan_prd
+  artifacts:
+    paths:
+      - ./**/src.zip
+      - ./**/.terraform/**
+      - ./**/*terraform*
+
+destroy_prd:
+  when: manual
+  stage: destroy
+  dependencies:
+    - init_prd
+    - plan_prd
+    - apply_prd
+  <<: *before_script_prd
+  script:
+    - terraform destroy 
+        -auto-approve
+        -var "google_credentials=$GCLOUD_SA_KEY_FILE_NAME"
+        -var "project_id=$PRD_GCLOUD_PROJECT_ID"
+        -var "project_region=$PRD_GCLOUD_REGION"
+        -var "resource_name_prefix=$RESOURCE_NAME_PREFIX"
