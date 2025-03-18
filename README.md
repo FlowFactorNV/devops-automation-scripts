@@ -1,4 +1,4 @@
-#   DevOps Automation Hub 🚀 
+#   DevOps Automation Scripts 🚀 
 A collection of reusable automation scripts—for DevOps engineers **and developers who have to do it all.**_
 
 ##  Why This Repo Exists
