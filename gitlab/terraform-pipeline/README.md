@@ -12,6 +12,8 @@ The apply and destroy jobs are triggered manually.
 
 ## Pipeline CI/CD secrets
 
+Set these variables to protected, masked, hidden and expanded in your CI/CD variables config.
+
 | Name                    | Value                                                                                    |
 |-------------------------|------------------------------------------------------------------------------------------|
 | `DEV_GCLOUD_SA_KEY_B64` | Service account key for the development environment.                                     |
