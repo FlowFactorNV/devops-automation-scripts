@@ -1,27 +1,49 @@
-# Ansible
+# Ansible: System confifuration automation
 
 Last stable Ansible version: `>=2.9.xx`
 Best to be used with ansible navigator
 
-### Cloning
+## Source location
 
-Use following command to clone your fork locally:
-```bash
-git clone git@github.com/:<your_user_id>/ansible.git --recursive
+The master source code is located at:
+```
+https://github.com/FlowFactorNV/devops-automation-scripts.git
 ```
 
-Update the master branch on your fork:
+Feel free to fork the repository and create a pull requests.
+
+## Working with the cloned repository
+
+### Cloning the repository
+
+Use following command to clone your fork locally:
+
+```bash
+git clone git@github.com:<your github user name>/devops-automation-scripts.git --recursive
+```
+
+### Updating the repository
+- Adding the original repository as a remote:
+
+```bash
+git remote add upstream https://github.com/FlowFactorNV/devops-automation-scripts.git
+```
+
+- Update the repository with the latest changes from the master branch:
+
 ```bash
 git fetch upstream -v
 git checkout master
 git merge upstream/master
 ```
 
+### Working with branches
 Create a new local branch:
 ```bash
 git checkout -b <new_branch_name>
 ```
 
+### Committing changes
 Add local changes, commit them and push to your fork:
 ```bash
 git add <changed_files>
