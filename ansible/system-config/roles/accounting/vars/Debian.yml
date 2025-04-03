@@ -1,0 +1,10 @@
+---
+# Debian vars file for accounting
+
+# package names
+psacct_packages:
+  - acct
+
+# service names
+psacct_service_name: acct
+

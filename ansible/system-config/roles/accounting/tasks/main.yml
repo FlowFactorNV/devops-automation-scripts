@@ -1,0 +1,61 @@
+---
+# tasks file for accounting
+
+- name: "Accounting | Vars | Load OS specific variables"
+  include_vars: "{{ ansible_os_family }}.yml"
+  tags: [ "accounting", "configuration" ]
+
+- name: "Accounting | RHEL | Packages | Install process accounting packages"
+  yum:
+    name: "{{ psacct_packages }}"
+    state: "{{ psacct_package_state }}"
+    # update_cache: yes
+  when:
+    ansible_os_family == "RedHat"
+  tags: [ "accounting", "packages" ]
+
+- name: "Accounting | Debian | Packages | Install process accounting packages"
+  apt:
+    name: "{{ psacct_packages }}"
+    state: "{{ psacct_package_state }}"
+    # update_cache: yes
+  when:
+    ansible_os_family == "Debian"
+  tags: [ "accounting", "packages" ]
+
+- name: "Accounting | RHEL | Packages | Install system performance monitoring tools packages"
+  yum:
+    name: "{{ sysstat_packages }}"
+    state: "{{ sysstat_package_state }}"
+    # update_cache: yes
+  when:
+    ansible_os_family == "RedHat"
+  tags: [ "accounting", "packages" ]
+
+- name: "Accounting | Debian | Packages | Install system performance monitoring tools packages"
+  apt:
+    name: "{{ sysstat_packages }}"
+    state: "{{ sysstat_package_state }}"
+    # update_cache: yes
+  when:
+    ansible_os_family == "Debian"
+  tags: [ "accounting", "packages" ]
+
+- name: "Accounting | Service | Set required process accounting service state"
+  service:
+    name: "{{ psacct_service_name }}"
+    state: "{{ psacct_service_state }}"
+    enabled: "{{ psacct_service_enabled }}"
+  when:
+    psacct_package_state is defined and psacct_package_state == "present"
+  tags: [ "accounting", "service" ]
+
+- name: "Accounting | Service | Set required system performance monitoring tools service state"
+  service:
+    name: "{{ sysstat_service_name }}"
+    state: "{{ sysstat_service_state }}"
+    enabled: "{{ sysstat_service_enabled }}"
+  when:
+    sysstat_package_state is defined and sysstat_package_state == "present"
+  tags: [ "accounting", "service" ]
+
