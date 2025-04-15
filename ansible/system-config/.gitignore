@@ -1,0 +1,14 @@
+.vault
+roles_ext/
+group_vars/all/personal
+*.pyc
+*.swp
+*.swo
+*.org
+*.crt
+*.key
+dh*.pem
+ansible-navigator.log
+.ssh
+*-artifact-*
+ansible_collections/

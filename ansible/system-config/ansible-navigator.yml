@@ -1,0 +1,24 @@
+---
+ansible-navigator:
+
+  ansible:
+    config:
+      path: ./ansible.cfg
+
+  execution-environment:
+    container-engine: podman
+    enabled: true
+    image: registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel9
+    pull:
+      policy: missing
+
+  mode: stdout
+
+  logging:
+    file: /var/log/ansible-navigator/ansible-navigator.log
+    level: critical
+
+  playbook-artifact:
+    enable: false
+    replay: /tmp/{playbook_name}-artifact-{time_stamp}.json
+    save-as: /tmp/{playbook_name}-artifact-{time_stamp}.json

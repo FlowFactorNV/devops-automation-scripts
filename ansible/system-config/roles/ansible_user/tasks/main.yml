@@ -1,0 +1,105 @@
+---
+### Creation of initial password_hash
+#  Debian: apt install python-passlib
+#
+#  python -c "from passlib.hash import sha512_crypt; import getpass; print(sha512_crypt.using(rounds=5000).hash(getpass.getpass()))"
+#
+# Example:  $6$PM77qTdPxm1cmh.A$2gQL.ku9.ftKGQMaKVQGBLwIBFUuNqrXxRIiPWRRPPpJhGJImVvpwEwHiCZ2uKarDhnaPd8JUn3BaV8MzSSUJ/
+
+- name: Install dependencies and sudo rights for ansible
+  block:
+    - name: Install required dependencies for ansible on RHEL
+      when: ansible_nodename in groups['rhel']
+      ansible.builtin.dnf:
+        name:
+          - python3
+          - python3-pip
+          - sudo
+        state: latest
+
+    - name: Keep /etc/sudoers.d/20_ansible file up2date
+      ansible.builtin.copy:
+        src: sudoers.d/20_ansible
+        dest: /etc/sudoers.d/20_ansible
+        mode: 0440
+        owner: root
+
+- name: Create initial user/group for ansible
+  block:
+    - name: Creation of group ansible
+      ansible.builtin.group:
+        name: "{{ ANSIBLE_USER_ansible_group }}"
+        gid: "{{ ANSIBLE_USER_ansible_gid }}"
+        state: present
+
+    - name: Creation of user ansible
+      ansible.builtin.user:
+        name: ansible
+        comment: Ansible User
+        create_home: yes
+        group: "{{ ANSIBLE_USER_ansible_group }}"
+        password:  "{{ ANSIBLE_USER_dummy_pw }}"
+        shell: "{{ ANSIBLE_USER_os_shell }}"
+        skeleton: true
+        uid: "{{ ANSIBLE_USER_ansible_uid }}"
+        update_password: on_create
+
+    - name: Make sure user ansible belongs to group wheel on RedHat systems
+      when: ansible_os_family == 'RedHat' or ansible_os_family == 'Rocky'
+      ansible.builtin.user:
+        name: ansible
+        groups: wheel
+        append: yes
+
+- name: Retrieving existing salt value for user ansible
+  block:
+    - name: Retrieve existing salt value for user ansible on x86_64
+      when: ansible_architecture == "x86_64"
+      ansible.builtin.shell: awk -F":" '/ansible/{gsub(/\$[^$]+$/, "$",$2);print $1,$2}' OFS=":" /etc/shadow | awk -F"$" '{print $(NF-1)}'
+      check_mode: no
+      register: ansible_salt
+      changed_when: "ansible_salt.rc != 0 "
+
+    - name: Retrieve existing salt value for user ansible on Raspberry Pi/Aarch64
+      when: ansible_architecture == "aarch64"
+      ansible.builtin.shell: awk -F":" '/ansible/{gsub(/\$[^$]+$/, "$",$2);print $1,$2}' OFS=":" /etc/shadow | awk -F"$" '{print $(NF-1)}'
+      check_mode: no
+      register: ansible_salt_pi
+      changed_when: "ansible_salt_pi.rc != 0 "
+
+    - debug:
+        msg: " ansible salt: {{ ansible_salt.stdout }}"
+      when:
+        - ansible_architecture == "x86_64"
+        - ANSIBLE_USER_debug
+
+    - debug:
+        msg: " ansible salt: {{ ansible_salt_pi.stdout }}"
+      when:
+        - ansible_architecture == "aarch64"
+        - ANSIBLE_USER_debug
+
+- name: Set the password for user ansible
+  ansible.builtin.user:
+    name: ansible
+    password: "{{ ANSIBLE_USER_ansible_pw | password_hash('sha512', ANSIBLE_USER_salt.stdout) }}"
+    update_password: "{{ ANSIBLE_USER_update_password }}"
+
+- name: Set the password for user ansible
+  block:
+    - name: Set the password for user ansible on x86_64
+      when: ansible_architecture == "x86_64"
+      ansible.builtin.user:
+        name: kurtadm
+        password: "{{ ANSIBLE_USER_kurtadm_pw | password_hash('sha512', ANSIBLE_USER_salt.stdout) }}"
+        update_password: "{{ ANSIBLE_USER_update_password }}"
+
+    - name: Set the password for user ansible on Raspberry Pi
+      when: ansible_architecture == "aarch64"
+      ansible.builtin.user:
+        name: kurtadm
+        password: "{{ ANSIBLE_USER_kurtadm_pw | password_hash('sha512', ANSIBLE_USER_salt_pi.stdout) }}"
+        update_password: "{{ ANSIBLE_USER_update_password }}"
+
+
+

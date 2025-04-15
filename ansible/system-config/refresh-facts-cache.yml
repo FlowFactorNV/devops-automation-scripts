@@ -1,0 +1,5 @@
+---
+- name: Refresh Facts Cache
+  hosts:
+  - "{{ include_hosts | default('all') }}"
+  gather_facts: true

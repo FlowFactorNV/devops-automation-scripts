@@ -1,0 +1,10 @@
+---
+# RedHat vars file for accounting
+
+# package names
+psacct_packages:
+  - psacct
+
+# service names
+psacct_service_name: psacct
+

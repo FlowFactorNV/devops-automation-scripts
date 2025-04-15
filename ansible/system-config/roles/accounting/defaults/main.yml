@@ -1,0 +1,28 @@
+---
+# defaults file for accounting
+
+# psacct package names
+psacct_packages:
+  - psacct
+
+# psacct package state
+psacct_package_state: present
+
+# psacct service configuration
+psacct_service_name: psacct
+psacct_service_state: started
+psacct_service_enabled: yes
+
+# sysstat package names
+sysstat_packages:
+  - sysstat
+  - strace
+
+# sysstat package state
+sysstat_package_state: present
+
+# sysstat service configuration
+sysstat_service_name: sysstat
+sysstat_service_state: started
+sysstat_service_enabled: yes
+
