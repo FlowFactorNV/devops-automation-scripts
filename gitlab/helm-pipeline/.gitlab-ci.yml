@@ -1,0 +1,50 @@
+image: quay.io/helmpack/chart-testing
+
+variables:
+  HELM_REPO_URL: <fill-in>
+
+default:
+  tags:
+    - k8s
+
+variables:
+  version_regex: '/v[0-9]+\.[0-9]+\.[0-9]+/'
+
+stages:
+  - lint
+  - template
+  - package
+
+lint:
+  stage: lint
+  script:
+    - helm lint . --strict
+
+lint_values:
+  stage: lint
+  script:
+    - find . -type f -iname "values.*.yaml" -print0 | xargs -0 -n1 -t -I{} helm lint --strict --values "{}" .
+
+template:
+  stage: template
+  script:
+    - helm template .
+
+template_values:
+  stage: template
+  script:
+    - find . -type f -iname "values.*.yaml" -print0 | xargs -0 -n1 -t -I{} helm template --values "{}" .
+
+package:
+  stage: package
+  # rules:
+  #   - if: '$CI_COMMIT_TAG =~ $version_regex'
+  #     when: on_success
+  script:
+    - mkdir ./package/
+    - helm repo add helm-lcm $HELM_REPO_URL
+    - helm package -d ./package/ .
+    - CHART_NAME=$(helm show chart . | grep 'name' | awk '{print $2}')
+    - CHART_VERSION=$(helm show chart . | grep 'version:' | awk '{print $2}')
+    - 'curl --verbose --insecure --fail-with-body --request POST --user gitlab-ci-token:$CI_JOB_TOKEN --form "chart=@package/${CHART_NAME}-${CHART_VERSION}.tgz" "https://gitlab.cmc.be/api/v4/projects/${CI_PROJECT_ID}/packages/helm/api/stable/charts"'
+  
