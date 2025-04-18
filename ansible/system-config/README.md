@@ -3,6 +3,12 @@
 Last stable Ansible version: `>=2.9.xx`
 Best to be used with ansible navigator
 
+This Ansible setup helps manage and keep systems in check across different machines. 
+It's built around a main playbook (shared.yml) that handles various system tasks like 
+checking if DNS is working, managing user access, and setting up system accounts. 
+The setup works with different Linux systems, including RHEL and Ubuntu, and can be run
+on specific machines or groups of machines as needed.
+
 ## Source location
 
 The master source code is located at:
