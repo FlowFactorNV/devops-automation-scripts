@@ -2,13 +2,11 @@ image: quay.io/helmpack/chart-testing
 
 variables:
   HELM_REPO_URL: <fill-in>
+  version_regex: '/v[0-9]+\.[0-9]+\.[0-9]+/'
 
 default:
   tags:
     - k8s
-
-variables:
-  version_regex: '/v[0-9]+\.[0-9]+\.[0-9]+/'
 
 stages:
   - lint
