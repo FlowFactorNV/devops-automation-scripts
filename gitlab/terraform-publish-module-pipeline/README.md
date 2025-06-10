@@ -1,7 +1,7 @@
 # GitLab / Terraform publish module pipeline
 
 This pipeline validates and publishes Terraform modules to the GitLab module registry. I use it to publish smaller 
-modules that are bundled together in the same repository. For example, consider the following directories, containing
+modules that are bundled together in the same repository. For example, consider the following directories containing
 modules for AWS:
 
 ```
