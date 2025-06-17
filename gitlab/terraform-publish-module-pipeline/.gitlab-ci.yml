@@ -1,0 +1,55 @@
+image:
+  name: hashicorp/terraform
+  entrypoint: [""]
+
+stages:
+  - validate
+  - publish
+
+# The Terraform image is based on Alpine, which uses Ash, so we can't write Bash-style regex matching
+before_script:
+  - |
+    echo "$CI_COMMIT_TAG" | grep -Eq '^[a-z-]+/v[0-9]+\.[0-9]+\.[0-9]+$'
+    if [ $? -eq 0 ]; then
+      MODULE_NAME=$(echo "$CI_COMMIT_TAG" | cut -d'/' -f1)
+      MODULE_VERSION=$(echo "$CI_COMMIT_TAG" | cut -d'/' -f2 | sed 's/^v//')
+      echo "Detected module: $MODULE_NAME, version: $MODULE_VERSION"
+    else
+      echo "Tag format is incorrect. Expected format: 'module-name/vX.Y.Z'. Received: $CI_COMMIT_TAG"
+      exit 1
+    fi
+
+validate:
+  stage: validate
+  script:
+    - |
+      if [ ! -d "$MODULE_NAME" ]; then
+        echo "Error: directory '$MODULE_NAME' does not exist."
+        exit 1
+      fi
+    - cd "$MODULE_NAME"
+    - echo "Validating module '$MODULE_NAME'..."
+    - terraform init -backend=false
+    - terraform validate
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^[a-z-]+\/v\d+\.\d+\.\d+$/'
+
+publish:
+  stage: publish
+  # curl is not installed on Alpine by default. wget is available, but it's cumbersome to send a file via a PUT request
+  # with it. So curl needs to be installed.
+  script:
+    - MODULE_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/terraform/modules/${MODULE_NAME}/aws/${MODULE_VERSION}/file"
+    - tar czf "${MODULE_NAME}.tar.gz" -C "${MODULE_NAME}" .
+    - apk update && apk add curl
+    - |
+      curl --silent \
+           --show-error \
+           --location \
+           --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+           --upload-file "${MODULE_NAME}.tar.gz" \
+           --write-out "%{http_code}" \
+           --output upload_response.txt \
+           "${MODULE_REGISTRY_URL}"
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^[a-z-]+\/v\d+\.\d+\.\d+$/'

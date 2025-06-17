@@ -1,4 +1,4 @@
-# GitLab / Terraform pipeline
+# GitLab / Terraform provisioning pipeline
 
 This is a simple configuration to run Terraform jobs in GitLab pipelines for a development and production environment
 hosted on Google Cloud, using GitLab-managed Terraform state. 

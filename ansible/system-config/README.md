@@ -3,6 +3,33 @@
 Last stable Ansible version: `>=2.9.xx`
 Best to be used with ansible navigator
 
+This Ansible setup helps manage and keep systems in check across different machines. 
+It's built around a main playbook (shared.yml) that handles various system tasks like 
+checking if DNS is working, managing user access, and setting up system accounts. 
+The setup works with different Linux systems, including RHEL and Ubuntu, and can be run
+on specific machines or groups of machines as needed.
+
+## Roles
+
+The authorized_keys role is responsible for managing SSH authorized keys for users. It allows administrators to define 
+and enforce SSH key configurations for individual users, groups, or hosts. The role merges multiple key lists 
+(authorized_key_list, authorized_key_list_host, and authorized_key_list_group) to create a unified configuration. 
+It supports options like key exclusivity, directory management, and custom key paths, ensuring flexibility and security 
+in managing SSH access. This role is particularly useful for maintaining secure and consistent SSH configurations across
+multiple systems.
+
+The accounting role focuses on installing and configuring process accounting and system
+performance monitoring tools, such as psacct and sysstat. It ensures that the required packages are installed and
+the associated services are started and enabled. The role adapts to different operating systems by using OS-specific
+variables and package names, ensuring compatibility with distributions like RHEL, Debian, and Oracle Linux. This role is
+essential for monitoring system performance and tracking resource usage, which is critical for system administrators.
+
+The ansible_user role is designed to manage the ansible user account, including its creation, group membership, 
+and sudo privileges. It sets up a secure initial password, which can be updated later, and ensures that the user has the
+necessary permissions to execute administrative tasks. The role also installs required dependencies and configures the 
+sudoers file to allow passwordless sudo access for the ansible user. This role simplifies the process of setting up a 
+dedicated user for Ansible operations, ensuring consistency and security.
+
 ## Source location
 
 The master source code is located at:

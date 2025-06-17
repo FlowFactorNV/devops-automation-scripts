@@ -1,0 +1,111 @@
+stages:
+  - validate
+  - plan
+  - apply
+
+default:
+  image:
+    name: hashicorp/terraform
+    entrypoint: [""]
+  id_tokens:
+    AWS_TOKEN:
+      aud: https://gitlab.com
+
+variables:
+  AWS_PROFILE: oidc
+
+#######################################################################################################################
+# Templates and snippets
+#######################################################################################################################
+
+.aws_config_setup:
+  script:
+    - mkdir $HOME/.aws
+    - echo "$AWS_TOKEN" > $HOME/.aws/token
+    - echo "[profile oidc]" > $HOME/.aws/config
+    - echo "role_arn = $STATE_AWS_ROLE_ARN" >> $HOME/.aws/config
+    - echo "web_identity_token_file = $HOME/.aws/token" >> $HOME/.aws/config
+
+.init_template:
+  before_script:
+    - !reference [.terraformrc_setup, script]
+    - !reference [.aws_config_setup, script]
+    - terraform init -backend-config=key="env:/$ENV_NAME/path/to/your/statefile.tfstate"
+
+.plan_template:
+  stage: plan
+  dependencies:
+    - validate
+  extends: .init_template
+  script:
+    - apk --no-cache add jq
+    - alias convert_report="jq -r '([.resource_changes[]?.change.actions?]|flatten)|{\"create\":(map(select(.==\"create\"))|length),\"update\":(map(select(.==\"update\"))|length),\"delete\":(map(select(.==\"delete\"))|length)}'"
+    - terraform plan 
+        -out=$ENV_NAME.tfplan 
+        -var "role_arn=$AWS_ROLE_ARN"
+        -var "web_identity_token=$AWS_TOKEN"
+        -var-file=./environments/$ENV_NAME-env.tfvars
+    - terraform show -json $ENV_NAME.tfplan | convert_report > $ENV_NAME.tfplan.json
+  artifacts:
+    paths:
+      - $ENV_NAME.tfplan
+    expire_in: 1 hour
+    reports:
+      terraform: $ENV_NAME.tfplan.json
+
+.apply_template:
+  stage: apply
+  extends: .init_template
+  script:
+    - terraform apply -auto-approve $ENV_NAME.tfplan
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+#######################################################################################################################
+# Jobs
+#######################################################################################################################
+
+validate:
+  stage: validate
+  script:
+    - !reference [.terraformrc_setup, script]
+    - terraform init -backend=false
+    - terraform validate
+  artifacts:
+    expire_in: 1 hour
+  rules:
+    - when: always
+
+plan:dev:
+  stage: plan
+  extends: .plan_template
+  variables:
+    AWS_ROLE_ARN: $DEV_AWS_ROLE_ARN
+    ENV_NAME: dev
+  rules:
+    - when: always
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+plan:prd:
+  stage: plan
+  extends: .plan_template
+  variables:
+    AWS_ROLE_ARN: $PRD_AWS_ROLE_ARN
+    ENV_NAME: prd
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+apply:dev:
+  extends: .apply_template
+  dependencies:
+    - plan:dev
+  variables:
+    ENV_NAME: dev
+
+apply:prd:
+  extends: .apply_template
+  dependencies:
+    - plan:prd
+  variables:
+    ENV_NAME: prd
