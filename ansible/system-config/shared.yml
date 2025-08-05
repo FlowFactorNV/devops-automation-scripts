@@ -49,4 +49,4 @@
                                                                 ( duounix_secret_key is none ) or
                                                                 ( duounix_secret_key | trim == '') ) }
 #    - { role: root_files,       tags: root_files }
-#    - { role: glusterfs,        tags: glusterfs,          when: inventory_hostname in groups.gluster_hosts }
+    - { role: glusterfs,        tags: glusterfs,          when: inventory_hostname in groups.gluster_hosts and ansible_os_family == "RedHat" }
