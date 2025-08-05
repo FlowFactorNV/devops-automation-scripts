@@ -41,9 +41,8 @@
     - { role: authorized_keys,  tags: authorized_keys }
 #    - { role: netplan,          tags: netplan,            when: ansible_distribution == 'Ubuntu' }
 #    - { role: rh_network,       tags: networkmanager,     when: not ansible_distribution == 'Ubuntu' }
-#    - { role: motd,             tags: motd }
+    - { role: motd,             tags: motd }
 #    - { role: zsh,              tags: zsh }
-#    - { role: linux_logo,       tags: linux_logo }
 #    - { role: zabbix_agent2,    tags: zabbix_agent2 }
     - { role: duo_unix,         tags: duo_unix,           when: not ( ( duounix_secret_key is undefined ) or
                                                                 ( duounix_secret_key is none ) or
