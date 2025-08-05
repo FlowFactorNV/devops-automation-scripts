@@ -1,0 +1,16 @@
+---
+# In the output {{ CHECK_CONNECTIVITY_host }} translates to {{ NAMED_ns1 }} for example.
+# Looks stupid with the accolades there, but at least this way we have some translation.
+# If there is a better way, feel free to implement.
+#
+# Example usage in a playbook: { role: check_connectivity, CHECK_CONNECTIVITY_port: 53, CHECK_CONNECTIVITY_host: "{{ NAMED_ns1 }}",                            tags: check_dns }
+#
+- name: Check if {{ CHECK_CONNECTIVITY_host }} is reachable on port {{ CHECK_CONNECTIVITY_port }}
+  when: CHECK_CONNECTIVITY_host != False
+  tags: wait_for
+  check_mode: no
+  ansible.builtin.wait_for:
+    port: "{{ CHECK_CONNECTIVITY_port }}"
+    host: "{{ CHECK_CONNECTIVITY_host }}"
+    connect_timeout: "{{ CHECK_CONNECTIVITY_connect_timeout }}"
+    timeout: "{{ CHECK_CONNECTIVITY_timeout }}"
