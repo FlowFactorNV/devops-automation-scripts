@@ -45,8 +45,8 @@
 #    - { role: zsh,              tags: zsh }
 #    - { role: linux_logo,       tags: linux_logo }
 #    - { role: zabbix_agent2,    tags: zabbix_agent2 }
-#    - { role: duo_unix,         tags: duo_unix,           when: not ( ( duounix_secret_key is undefined ) or
-#                                                                ( duounix_secret_key is none ) or
-#                                                                ( duounix_secret_key | trim == '') ) }
+    - { role: duo_unix,         tags: duo_unix,           when: not ( ( duounix_secret_key is undefined ) or
+                                                                ( duounix_secret_key is none ) or
+                                                                ( duounix_secret_key | trim == '') ) }
 #    - { role: root_files,       tags: root_files }
 #    - { role: glusterfs,        tags: glusterfs,          when: inventory_hostname in groups.gluster_hosts }
