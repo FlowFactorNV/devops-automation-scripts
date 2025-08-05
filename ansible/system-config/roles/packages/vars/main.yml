@@ -1,3 +1,4 @@
 ---
 ## Extra packages that needs to be installed based on Role/Group/Host
+# Sorted using: yq '.common_pkgs |= sort()' AlmaLinux-10.yml >AlmaLinux-10-new.yml
 extra_common_pkgs: "{{ role_common_pkgs + host_common_pkgs + group_common_pkgs }}"
