@@ -1,0 +1,28 @@
+- name: Set OS-dependent variables
+  with_first_found:
+    - ../vars/{{ ansible_distribution }}_{{ ansible_distribution_major_version }}.yml
+    - ../vars/{{ ansible_distribution }}.yml
+    - ../vars/{{ ansible_os_family }}_{{ ansible_distribution_major_version }}.yml
+    - ../vars/{{ ansible_os_family }}.yml
+  ansible.builtin.include_vars: "{{ item }}"
+
+- name: Install Duo when OS is not CentOS
+  ansible.builtin.import_tasks: "{{ ansible_os_family }}.yml"
+
+- name: Place PAM config file
+  when: duounix_pam
+  ansible.builtin.template:
+    src: pam_duo.conf.j2
+    dest: "{{ duounix_conf_dir }}/pam_duo.conf"
+    seuser: _default
+    serole: _default
+    setype: _default
+
+- name: Place login config file
+  when: duounix_login
+  ansible.builtin.template:
+    src: login_duo.conf.j2
+    dest: "{{ duounix_conf_dir }}/login_duo.conf"
+    seuser: _default
+    serole: _default
+    setype: _default

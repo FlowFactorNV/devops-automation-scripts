@@ -1,0 +1,27 @@
+## Use Debian standard packages instead of DUO packages
+duounix_debian_packages: True
+
+duounix_pam: yes
+duounix_login: no
+
+duounix_integration_key: ''
+duounix_secret_key: ''
+duounix_api_hostname: ''
+
+duounix_conf_dir: /etc/duo
+
+duounix_login_config:
+  failmode: secure
+  pushinfo: 'yes'
+  autopush: 'no'
+  prompts: 3
+
+duounix_pam_config:
+  fallback_local_ip: 'no'
+  failmode: secure
+  pushinfo: 'yes'
+  autopush: 'no'
+  prompts: 3
+  accept_env_factor: 'no'
+
+duounix_debian_package: libpam-duo

@@ -1,0 +1,36 @@
+#
+# Debian-like systems
+#
+- name: duo_unix_debian | Install duo_unix packages from official DUO repositories
+  when: duounix_debian_packages == False and ansible_os_family == 'Debian'
+  block:
+    - name: duo_unix_debian | Place the GPG key (Debian-like)
+      ansible.builtin.copy:
+        src: APT-GPG-KEY-DUO
+        dest: /tmp/APT-GPG-KEY-DUO
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: duo_unix_debian | Install the GPG key (Debian-like)
+      become_user: root
+      ansible.builtin.apt_key:
+        file: /tmp/APT-GPG-KEY-DUO
+        id: 15D32EFC
+        state: present
+
+    - name: duo_unix_debian | Install the repo (Debian-like)
+      ansible.builtin.apt_repository:
+        repo: "deb http://pkg.duosecurity.com/{{ ansible_distribution }} {{ ansible_distribution_release }} main"
+
+    - name: duo_unix_debian | Install duo_unix from official duo repo
+      ansible.builtin.package:
+        name: "{{ duounix_package }}"
+        state: present
+
+- name: duo_unix_debian | Install duo_unix from Debian Repositories
+  when: ansible_os_family == 'Debian' and duounix_debian_packages == True
+  ansible.builtin.package:
+    name: "{{ duounix_debian_package }}"
+    state: present
+
