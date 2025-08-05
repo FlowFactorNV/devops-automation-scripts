@@ -1,0 +1,10 @@
+#!/bin/sh
+if [ -f /bin/lynis ];
+then
+  /bin/lynis audit system --auditor "automated" --cronjob | mailx -s "Lynis Report `date "+%Y%m%d"` on host `hostname -s`" logger@local.com
+fi
+
+if [ -f /usr/sbin/lynis ];
+then
+  /usr/sbin/lynis audit system --auditor "automated" --cronjob | mailx -s "Lynis Report `date "+%Y%m%d"` on host `hostname`" logger@local.com
+fi
