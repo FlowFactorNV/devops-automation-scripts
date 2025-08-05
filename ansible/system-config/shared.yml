@@ -39,7 +39,7 @@
 #    - { role: rootpw,           tags: rootpw }
 #    - { role: ansible_user,     tags: ansible_user }
     - { role: authorized_keys,  tags: authorized_keys }
-#    - { role: netplan,          tags: netplan,            when: ansible_distribution == 'Ubuntu' }
+    - { role: netplan,          tags: netplan,            when: ansible_distribution == 'Ubuntu' }
 #    - { role: rh_network,       tags: networkmanager,     when: not ansible_distribution == 'Ubuntu' }
     - { role: motd,             tags: motd }
 #    - { role: zsh,              tags: zsh }
