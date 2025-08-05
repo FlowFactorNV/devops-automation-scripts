@@ -1,71 +1,69 @@
 ---
 # List of packages to install by default on any debian family system.
 common_pkgs:
-  - btop
   - apt-file
-  - screen
-  - sharutils
-  - haveged
-  - rkhunter
-  - chkrootkit
-  - sysstat
-  - bsd-mailx
-  - postfix
-  - uptimed
-  - daemon
-  - lzop
-  - lvm2
-  - btrfs-progs
-  - xfsdump
-  - xfsprogs
-  - autofs
-  - pwgen
-  - elinks
-  - lynx
-  - lynis
-  - htop
-  - dnsutils
-  - iotop
+  - apt-transport-https
   - asciidoc
+  - autofs
+  - autojump
+  - bash-completion
+  - bsd-mailx
+  - btop
+  - btrfs-progs
+  - chkrootkit
+  - cryptsetup
   - curl
-  - wget
-  - traceroute
-  - tcptraceroute
-  - vnstat
-  - net-tools
+  - daemon
+  - dnsutils
   - dos2unix
+  - elinks
+  - ethtool
+  - firewalld
+  - fping
+  - gdisk
+  - git
+  - haveged
+  - htop
+  - iftop
+  - iotop
+  - locate
   - logrotate
+  - lsb-release
+  - lshw
+  - lsof
+  - lvm2
+  - lynis
+  - lynx
+  - lzop
   - mc
+  - net-tools
+  - nmap
+  - openssh-server
+  - postfix
   - psmisc
+  - pwgen
   - python3
   - python3-pip
-  - lsof
-  - bash-completion
-  - openssh-server
-  - ssh-audit
-  - gdisk
+  - rkhunter
   - rsync
-  - cryptsetup
-  - git
-  - lshw
-  - socat
-  - lsb-release
-  - apt-transport-https
-  - locate
+  - screen
   - secure-delete
+  - sharutils
+  - socat
   - source-highlight
-  - sudo
-  - vim-nox
-  - nmap
-  - zsh
+  - ssh-audit
   - sshpass
-  - fping
-  - ethtool
-  - tcpdump
-  - iftop
   - strace
+  - sudo
+  - sysstat
+  - tcpdump
+  - tcptraceroute
+  - traceroute
   - unzip
-  - firewalld
-  - autojump
-#  - network-manager
-#  - libteam-utils
+  - uptimed
+  - vim-nox
+  - vnstat
+  - wget
+  - xfsdump
+  - xfsprogs
+  - zsh
