@@ -1,0 +1,52 @@
+- name: Installing Duo Unix on RedHat based systems
+  when: ansible_os_family == 'RedHat'
+  block:
+
+    - name: duo_unix_redhat | Test for the GPG key (RedHat-like)
+      changed_when: False
+      failed_when: False
+      register: rpm_gpg_installed
+      ansible.builtin.shell: rpm -qi gpg-pubkey-15d32efc-\*
+
+#    - name: duo_unix_redhat | Place the GPG key (RedHat-like)
+#      when: "rpm_gpg_installed.rc != 0"
+#      ansible.builtin.copy:
+#        src: RPM-GPG-KEY-DUO
+#        dest: /tmp/RPM-GPG-KEY-DUO
+#        owner: root
+#        group: root
+#        mode: 0644
+#        seuser: _default
+#        serole: _default
+#        setype: _default
+
+#    - name: duo_unix_redhat | Install the GPG key (RedHat-like)
+#      become_user: root
+#      when: "rpm_gpg_installed.rc != 0"
+#      ansible.builtin.shell: rpm --import /tmp/RPM-GPG-KEY-DUO
+
+    - name: duo_unix_redhat | Install the GPG key (RedHat-like)
+      become_user: root
+      when: "rpm_gpg_installed.rc != 0"
+      ansible.builtin.shell: rpm --import https://duo.com/DUO-GPG-PUBLIC-KEY.asc
+
+    - name: duo_unix_redhat | Install the repo (RedHat-like)
+      when: not ansible_distribution == "CentOS"
+      ansible.builtin.yum_repository:
+        name: duosecurity
+        description: Official Duo Security repository
+        baseurl: http://pkg.duosecurity.com/{{ ansible_distribution }}/$releasever/$basearch
+        state: present
+
+    - name: duo_unix_redhat | Install the repo (CentOS Stream)
+      when: ansible_distribution == "CentOS"
+      ansible.builtin.yum_repository:
+        name: duosecurity
+        description: Official Duo Security repository
+        baseurl: http://pkg.duosecurity.com/CentOSStream/$releasever/$basearch
+        state: present
+
+    - name: duo_unix_redhat | Install duo_unix
+      ansible.builtin.package:
+        name: "{{ duounix_package }}"
+        state: present

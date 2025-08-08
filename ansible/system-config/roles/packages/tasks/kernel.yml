@@ -1,0 +1,16 @@
+### os limits and kernel tweaks
+
+# this will make a 'users' unix group soft limit the same as
+# 'fs.inotify.max_user_watches' (8192) kernel setting. Hard limit is 16384.
+- name: Change %users nofile limits
+  copy:
+    src: nofile.conf
+    dest: /etc/security/limits.d/nofile.conf
+    seuser: _default
+    serole: _default
+    setype: _default
+
+# https://www.mjmwired.net/kernel/Documentation/sysctl/fs.txt
+# fs.inotify.max_user_watches
+#   number of files to be monitored for event readiness
+# - name: set kernel settings

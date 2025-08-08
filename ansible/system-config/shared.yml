@@ -31,7 +31,7 @@
     #################
     # Configuration #
     #################
-#    - { role: os_role,          tags: os_role }
+    - { role: os_role,          tags: os_role }
 #    - { role: repos,            tags: repos }
 #    - { role: packages,         tags: packages }
 #    - { role: rhel,             tags: rhel,               when: ansible_os_family == "RedHat" and ansible_distribution_major_version|int == 9 }
@@ -39,14 +39,13 @@
 #    - { role: rootpw,           tags: rootpw }
 #    - { role: ansible_user,     tags: ansible_user }
     - { role: authorized_keys,  tags: authorized_keys }
-#    - { role: netplan,          tags: netplan,            when: ansible_distribution == 'Ubuntu' }
+    - { role: netplan,          tags: netplan,            when: ansible_distribution == 'Ubuntu' }
 #    - { role: rh_network,       tags: networkmanager,     when: not ansible_distribution == 'Ubuntu' }
-#    - { role: motd,             tags: motd }
+    - { role: motd,             tags: motd }
 #    - { role: zsh,              tags: zsh }
-#    - { role: linux_logo,       tags: linux_logo }
 #    - { role: zabbix_agent2,    tags: zabbix_agent2 }
-#    - { role: duo_unix,         tags: duo_unix,           when: not ( ( duounix_secret_key is undefined ) or
-#                                                                ( duounix_secret_key is none ) or
-#                                                                ( duounix_secret_key | trim == '') ) }
+    - { role: duo_unix,         tags: duo_unix,           when: not ( ( duounix_secret_key is undefined ) or
+                                                                ( duounix_secret_key is none ) or
+                                                                ( duounix_secret_key | trim == '') ) }
 #    - { role: root_files,       tags: root_files }
-#    - { role: glusterfs,        tags: glusterfs,          when: inventory_hostname in groups.gluster_hosts }
+    - { role: glusterfs,        tags: glusterfs,          when: inventory_hostname in groups.gluster_hosts and ansible_os_family == "RedHat" }

@@ -1,0 +1,19 @@
+# Packages installation behavior.
+#packages_state: latest
+packages_state: present
+
+# Selinux state.
+packages_selinux_state: disabled
+packages_selinux_policy: targeted
+
+# VM guest agent
+packages_vm_agent: qemu-guest-agent
+
+# Role based common packages
+role_common_pkgs: []
+
+# Host based common packages
+host_common_pkgs: []
+
+# Group based common packages
+group_common_pkgs: []

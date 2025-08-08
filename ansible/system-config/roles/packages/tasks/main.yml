@@ -1,0 +1,83 @@
+- name: Load OS specific variables
+  include_vars: "{{ansible_facts['distribution']}}.yml"
+  when: (ansible_os_family != "RedHat" and inventory_hostname not in groups['zimbra_hosts'] ) or ( ansible_os_family == "RedHat" and ansible_distribution_major_version|int < 9 )
+
+- name: Load RHEL 9 Families specific variables
+  include_vars: "{{ansible_facts['distribution']}}-{{ ansible_distribution_major_version }}.yml"
+  when: ansible_os_family == "RedHat" and ansible_distribution_major_version|int == 9
+
+- name: Load RHEL 10 Families specific variables
+  include_vars: "{{ansible_facts['distribution']}}-{{ ansible_distribution_major_version }}.yml"
+  when: ansible_os_family == "RedHat" and ansible_distribution_major_version|int == 10
+
+- name: Load Ubuntu Zimbra specific variables
+  include_vars: Zimbra.yml
+  when: ansible_facts['distribution'] == "Ubuntu" and inventory_hostname in groups['zimbra_hosts']
+
+- debug:
+    msg: " Packages list: {{ common_pkgs }}"
+
+- debug:
+    msg: " Extra Packages list: {{ extra_common_pkgs }}"
+
+- include_tasks: RedHat.yml
+  when: ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == "Rocky"
+
+- name: install Role related packages on Red Hat
+  when: ansible_facts['distribution'] == "RedHat"
+  block:
+    - name: Install Packages required for Ansible Automation Platform on Red Hat
+      ansible.builtin.dnf:
+        state: latest
+        name:
+          - ansible-core
+          - ansible-navigator
+          - ansible-collection-redhat-rhel_mgmt
+          - skopeo
+      when: inventory_hostname in groups.ansible_hosts
+
+    - name: Install Packages required for Podman on Red Hat
+      ansible.builtin.dnf:
+        state: latest
+        name:
+          - skopeo
+          - podman
+          - podman-compose
+          - podman-gvproxy
+          - podman-plugins
+          - podman-tui
+          - cockpit-podman
+      when: ansible_distribution_major_version|int < 10 and inventory_hostname in groups.podman_hosts
+
+    - name: Install Packages required for Podman on Red Hat 10
+      ansible.builtin.dnf:
+        state: latest
+        name:
+          - skopeo
+          - podman
+          - podman-compose
+          - podman-tui
+          - cockpit-podman
+      when: ansible_distribution_major_version|int == 10 and inventory_hostname in groups.podman_hosts
+
+- name: Update apt cache on Debian/Ubuntu hosts
+  ansible.builtin.apt:
+    update_cache: True
+  when:
+    - ansible_facts['os_family'] == "Debian"
+
+- name: Installing default packages
+  package: name={{common_pkgs}} state={{packages_state}}
+  when: ansible_facts['distribution'] != "OpenWrt"
+
+- name: Installing extra default packages
+  package: name={{extra_common_pkgs}} state={{packages_state}}
+  when: ansible_facts['distribution'] != "OpenWrt"
+
+- name: Installing VM Guest agent packages
+  package: name={{packages_vm_agent}} state={{packages_state}}
+  when: ansible_facts['virtualization_role'] == "guest"
+
+### OS limits and kernel tweaks
+- import_tasks: kernel.yml
+

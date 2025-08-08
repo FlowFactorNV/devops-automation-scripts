@@ -1,0 +1,4 @@
+- name: Restart Uptimed
+  ansible.builtin.service:
+    name: uptimed
+    state: restarted

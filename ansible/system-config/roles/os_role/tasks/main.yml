@@ -1,0 +1,174 @@
+## Default OS configurations
+
+# Retrieve always the facts
+- name: Gather Facts when no facts are available
+  when: ansible_facts == {}
+  tags: [ 'always' ]
+  ansible.builtin.setup:
+
+### Alma Linux
+## redhat_distribution='rhel9'
+- ansible.builtin.include_tasks: redhat.yml
+  when: "ansible_distribution == 'AlmaLinux' and ansible_distribution_major_version|int == 9"
+
+## redhat_distribution='rhel10'
+- ansible.builtin.include_tasks: redhat.yml
+  when: "ansible_distribution == 'AlmaLinux' and ansible_distribution_major_version|int == 10"
+
+### CentOS Stream
+## redhat_distribution='centos9'
+- ansible.builtin.include_tasks: redhat.yml
+  when: "ansible_distribution == 'CentOS' and ansible_distribution_major_version|int == 9"
+
+## redhat_distribution='centos10'
+- ansible.builtin.include_tasks: redhat.yml
+  when: "ansible_distribution == 'CentOS' and ansible_distribution_major_version|int == 10"
+
+### Debian
+## debian_distribution='bullseye'
+- ansible.builtin.include_tasks: debian.yml
+  when: "ansible_distribution == 'Debian' and ansible_distribution_major_version|int == 11"
+
+## debian_distribution='bookworm'
+- ansible.builtin.include_tasks: debian.yml
+  when: "ansible_distribution == 'Debian' and ansible_distribution_major_version|int == 12"
+
+### Red Hat EL
+## redhat_distribution='rhel9'
+- ansible.builtin.include_tasks: redhat.yml
+  when: "ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 9"
+
+## redhat_distribution='rhel10'
+- ansible.builtin.include_tasks: redhat.yml
+  when: "ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 10"
+
+### Oracle Linux
+## redhat_distribution='rhel8'
+- ansible.builtin.include_tasks: redhat.yml
+  when: "ansible_distribution == 'OracleLinux' and ansible_distribution_major_version|int == 8"
+
+## redhat_distribution='rhel9'
+- ansible.builtin.include_tasks: redhat.yml
+  when: "ansible_distribution == 'OracleLinux' and ansible_distribution_major_version|int == 9"
+
+- name: Create the /root/data directory
+  ansible.builtin.file:
+    path: '/root/data'
+    state: directory
+    mode: '0700'
+    owner: 'root'
+    seuser: _default
+    serole: _default
+    setype: _default
+
+- name: Create the /root/bin directory
+  ansible.builtin.file:
+    path: '/root/bin'
+    state: directory
+    mode: '0700'
+    owner: 'root'
+    seuser: _default
+    serole: _default
+    setype: _default
+
+- name: Create the /root/.ssh directory
+  ansible.builtin.file:
+    path: '/root/.ssh'
+    state: directory
+    mode: '0700'
+    owner: 'root'
+    seuser: _default
+    serole: _default
+    setype: _default
+
+- name: Execute OS tasks
+  #when: ansible_nodename not in groups['lab']
+  block:
+    ## Creation of required directories
+    - name: Create the /svnbackup directory
+      ansible.builtin.file:
+        path: '/svnbackup'
+        state: absent
+        mode: '0755'
+        owner: 'root'
+        seuser: _default
+        serole: _default
+        setype: usr_t
+
+    - name: Create the /test directory
+      ansible.builtin.file:
+        path: '/test'
+        state: directory
+        mode: '0755'
+        owner: 'root'
+        seuser: _default
+        serole: _default
+        setype: usr_t
+
+    - name: Create the /upgrade directory
+      ansible.builtin.file:
+        path: '/upgrade'
+        state: directory
+        mode: '0777'
+        owner: 'root'
+        seuser: _default
+        serole: _default
+        setype: usr_t
+
+    ### Lynis daily run
+    - name: Keep file /etc/cron.daily/lynis up2date
+      when: ansible_nodename in groups['rhel']
+      ansible.builtin.copy:
+        src: General/lynis
+        dest: /etc/cron.daily/lynis
+        mode: 0755
+        owner: root
+        seuser: _default
+        serole: _default
+        setype: _default
+
+    ### Stop and Disable autofs
+    - name: disable autofs.service
+      ignore_errors: yes
+      ansible.builtin.service:
+        name: autofs
+        enabled: no
+        state: stopped
+
+- name: Execute OS tasks for hosts with git_repos directory
+  when: ansible_nodename in groups['gitrepo_hosts']
+  block:
+    - name: Create the /var/git-repos  directory
+      ansible.builtin.file:
+        path: '/var/git-repos'
+        state: directory
+        mode: '0755'
+        owner: 'root'
+        seuser: _default
+        serole: _default
+        setype: _default
+
+- name:  Configure uptimed.conf
+  block:
+    ## Check if uptimed config exists
+    - name: Check if /etc/uptimed.conf exists
+      ansible.builtin.stat:
+        path: /etc/uptimed.conf
+      register: stat_uptimed
+
+    - name: Change the email address used
+      when: stat_uptimed.stat.exists
+      ansible.builtin.lineinfile:
+        path: /etc/uptimed.conf
+        regexp: '^EMAIL='
+        line: "EMAIL={{ os_role_uptimed_email }}"
+      notify: Restart Uptimed
+
+    - name: Enable/Disable sending mail
+      when: stat_uptimed.stat.exists
+      ansible.builtin.lineinfile:
+        path: /etc/uptimed.conf
+        regexp: '^SEND_EMAIL='
+        line: "SEND_EMAIL={{ os_role_uptimed_send_mail }}"
+      notify: Restart Uptimed
+

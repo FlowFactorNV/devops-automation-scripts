@@ -1,0 +1,19 @@
+- name: Keep file /etc/profile.d/lingering.sh up2date
+  ansible.builtin.copy:
+    src: Redhat/profile.d/lingering.sh
+    dest: /etc/profile.d/lingering.sh
+    mode: 0755
+    owner: root
+    seuser: _default
+    serole: _default
+    setype: _default
+
+- name: Create the /etc/ssl/private directory
+  ansible.builtin.file:
+    path: '/etc/ssl/private'
+    state: directory
+    mode: '0770'
+    owner: 'root'
+    seuser: _default
+    serole: _default
+    setype: _default
