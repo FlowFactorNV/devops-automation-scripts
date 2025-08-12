@@ -2,6 +2,7 @@ Repos
 =====
 
 **NOTE** Needs to be updated for the latest Ansible version and linux distributions.
+**NOTE** Cleanup of templates and vars is also needed.
 
 This role installs repositories and signing keys for them on your server.
 
