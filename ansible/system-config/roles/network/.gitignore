@@ -1,0 +1,14 @@
+/.cache
+/.coverage
+*.pyc
+/.pytest_cache
+/tests/.coverage
+/tests/htmlcov*
+/tests/__pycache__/
+/tests/remote-coveragedata-*
+/tests/tmp_merge_coveragerc
+/tests/total-*coveragedata
+/.tox
+/.vagrant
+/.vscode
+.ansible

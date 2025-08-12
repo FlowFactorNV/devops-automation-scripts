@@ -1,0 +1,82 @@
+# Alma Linux repository setup
+
+- name: Enable CRB Repository for Alma Linux
+  community.general.dnf_config_manager:
+    name: crb
+    state: enabled
+
+- name: "Setup repositories"
+  when: "item['name']|default(item) in repository_list and alma_distribution in repository_list[item['name']|default(item)] and repository_list[item['name']|default(item)][alma_distribution]['repo'] is defined"
+  with_items: "{{ repositories[alma_distribution] | default([]) }}"
+  tags:
+    - files
+    - repos
+  ansible.builtin.template:
+    src: "{{ alma_distribution }}/{{ repository_list[item['name'] | default(item)][alma_distribution]['repo'] }}.j2"
+    dest: "/etc/yum.repos.d/{{ repository_list[item['name'] | default(item)][alma_distribution]['repo'] }}"
+    owner: root
+    group: root
+    mode: 0644
+    seuser: _default
+    serole: _default
+    setype: _default
+
+- name: "Setup GPG keys for repositories"
+  when: "item['name']|default(item) in repository_list and alma_distribution in repository_list[item['name']|default(item)] and 'key' in repository_list[item['name']|default(item)][alma_distribution]"
+  with_items: "{{ repositories[alma_distribution] | default([]) }}"
+  tags:
+    - files
+    - repos
+  ansible.builtin.copy:
+    src: "{{ alma_distribution }}/keys/{{ repository_list[item['name'] | default(item)][alma_distribution]['key'] }}"
+    dest: "/etc/pki/rpm-gpg/{{ repository_list[item['name'] | default(item)][alma_distribution]['key'] }}"
+    owner: root
+    group: root
+    mode: 0644
+    seuser: _default
+    serole: _default
+    setype: _default
+
+- name: "Setup repositories from defined rpms and ensure repo is disabled by default, unless enabled is specified."
+  when: "item['name']|default(item) in repository_list and repository_list[item['name']|default(item)][alma_distribution]['url'] is defined and repository_list[item['name']|default(item)][alma_distribution]['url'].endswith('rpm')"
+  with_items: "{{ repositories[alma_distribution] | default([]) }}"
+  tags:
+    - files
+    - repos
+  ansible.builtin.dnf:
+    name: "{{ repository_list[item['name'] | default(item)][alma_distribution]['url'] }}"
+    state: latest
+    validate_certs: no
+    disable_gpg_check: yes
+
+- name: "Setup remote repositories (basic repo)"
+  when: alma_distribution in remote_repositories and item.endswith('repo')
+  with_items: "{{ remote_repositories[alma_distribution] | default([]) }}"
+  tags:
+    - files
+    - repos
+  ansible.builtin.get_url:
+    url: "{{ item }}"
+    dest: "/etc/yum.repos.d/{{ item | basename}}"
+    owner: root
+    group: root
+    mode: 0644
+    seuser: _default
+    serole: _default
+    setype: _default
+
+- name: "Setup remote repositories (rpm repo)"
+  when: alma_distribution in remote_repositories and item.endswith('rpm')
+  with_items: "{{ remote_repositories[alma_distribution] | default([]) }}"
+  tags:
+    - files
+    - repos
+  ansible.builtin.dnf:
+    name: "{{ item }}"
+    state: "present"
+
+- name: "Update yum cache"
+  tags:
+    - repos
+  ansible.builtin.dnf:
+    update_cache: yes

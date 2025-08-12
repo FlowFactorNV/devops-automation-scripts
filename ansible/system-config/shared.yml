@@ -32,7 +32,7 @@
     # Configuration #
     #################
     - { role: os_role,          tags: os_role }
-#    - { role: repos,            tags: repos }
+    - { role: repos,            tags: repos }
 #    - { role: packages,         tags: packages }
 #    - { role: rhel,             tags: rhel,               when: ansible_os_family == "RedHat" and ansible_distribution_major_version|int == 9 }
     - { role: accounting,       tags: accounting }
@@ -40,7 +40,7 @@
 #    - { role: ansible_user,     tags: ansible_user }
     - { role: authorized_keys,  tags: authorized_keys }
     - { role: netplan,          tags: netplan,            when: ansible_distribution == 'Ubuntu' }
-#    - { role: rh_network,       tags: networkmanager,     when: not ansible_distribution == 'Ubuntu' }
+    - { role: network,          tags: networkmanager,     when: not ansible_distribution == 'Ubuntu' }
     - { role: motd,             tags: motd }
 #    - { role: zsh,              tags: zsh }
 #    - { role: zabbix_agent2,    tags: zabbix_agent2 }

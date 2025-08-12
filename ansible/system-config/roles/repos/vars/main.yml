@@ -1,0 +1,98 @@
+repos_debian_custom_packages: "{{ repos_debian_custom_packages_role}} {{repos_debian_custom_packages_host}} {{repos_debian_custom_packages_group }}"
+repos_ubuntu_custom_packages: "{{ repos_ubuntu_custom_packages_role}} {{repos_ubuntu_custom_packages_host}} {{repos_ubuntu_custom_packages_group }}"
+
+repository_list:
+  backports:
+    bullseye:
+      url: "http://deb.debian.org/debian/"
+      pool: "{{ ansible_distribution_release }}-backports main contrib non-free"
+    bookworm:
+      url: "http://deb.debian.org/debian/"
+      pool: "{{ ansible_distribution_release }}-backports main contrib non-free"
+  docker:
+    bullseye:
+      key: "docker.gpg"
+      url: "https://download.docker.com/linux/debian/"
+      pool: "{{ ansible_distribution_release }} stable"
+  epel:
+    rhel9:
+      url: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm"
+    rhel10:
+      url: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm"
+    ol9:
+      url: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm"
+    pialma9:
+      url: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm"
+    pialma10:
+      url: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm"
+  nginx:
+    buster:
+      key: "nginx_signing.key"
+      url: "http://nginx.org/packages/debian/"
+      pool: "{{ ansible_distribution_release }} nginx"
+    bullseye:
+      key: "nginx_signing.key"
+      url: "http://nginx.org/packages/debian/"
+      pool: "{{ ansible_distribution_release }} nginx"
+  postgresql:
+    rhel9:
+      url: "https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
+    rhel10:
+      url: "https://download.postgresql.org/pub/repos/yum/reporpms/EL-10-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
+    ol9:
+      url: "https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
+    pialma9:
+      url: "https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-aarch64/pgdg-redhat-repo-latest.noarch.rpm"
+    pialma10:
+      url: "https://download.postgresql.org/pub/repos/yum/reporpms/EL-10-aarch64/pgdg-redhat-repo-latest.noarch.rpm"
+    bullseye:
+      key: postgresql-ACCC4CF8.asc
+      url: "http://apt.postgresql.org/pub/repos/apt/"
+      pool: "{{ ansible_distribution_release }}-pgdg main"
+    bookworm:
+      key: postgresql-ACCC4CF8.asc
+      url: "http://apt.postgresql.org/pub/repos/apt/"
+      pool: "{{ ansible_distribution_release }}-pgdg main"
+    bionic:
+      key: postgresql-ACCC4CF8.asc
+      url: "http://apt.postgresql.org/pub/repos/apt/"
+      pool: "{{ ansible_distribution_release }}-pgdg main"
+    focal:
+      key: postgresql-ACCC4CF8.asc
+      url: "http://apt.postgresql.org/pub/repos/apt/"
+      pool: "{{ ansible_distribution_release }}-pgdg main"
+  zabbix:
+    centos9:
+      url: "https://repo.zabbix.com/zabbix/{{ repo_zabbix_version }}/release/centos/9/noarch/zabbix-release-latest-{{ repo_zabbix_version }}.el9.noarch.rpm"
+      url_prev: "https://repo.zabbix.com/zabbix/{{ repo_zabbix_prev_version }}/centos/9/x86_64/zabbix-release-latest-{{ repo_zabbix_prev_version }}.el9.noarch.rpm"
+    centos10:
+      url: "https://repo.zabbix.com/zabbix/{{ repo_zabbix_version }}/release/centos/10/noarch/zabbix-release-latest-{{ repo_zabbix_version }}.el10.noarch.rpm"
+      url_prev: "https://repo.zabbix.com/zabbix/{{ repo_zabbix_prev_version }}/centos/10/x86_64/zabbix-release-latest-{{ repo_zabbix_prev_version }}.el10.noarch.rpm"
+    rhel9:
+      url: "https://repo.zabbix.com/zabbix/{{ repo_zabbix_version }}/release/rhel/9/noarch/zabbix-release-latest-{{ repo_zabbix_version }}.el9.noarch.rpm"
+      url_prev: "https://repo.zabbix.com/zabbix/{{ repo_zabbix_prev_version }}/rhel/9/x86_64/zabbix-release-{{ repo_zabbix_prev_version }}-5.el9.noarch.rpm"
+    rhel10:
+      url: "https://repo.zabbix.com/zabbix/{{ repo_zabbix_version }}/release/rhel/10/noarch/zabbix-release-latest-{{ repo_zabbix_version }}.el10.noarch.rpm"
+      url_prev: "https://repo.zabbix.com/zabbix/{{ repo_zabbix_prev_version }}/rhel/10/x86_64/zabbix-release-{{ repo_zabbix_prev_version }}.el10.noarch.rpm"
+    ol9:
+      url: "https://repo.zabbix.com/zabbix/{{ repo_zabbix_version }}/release/oracle/9/noarch/zabbix-release-latest-{{ repo_zabbix_version }}.el9.noarch.rpm"
+      url_prev: "https://repo.zabbix.com/zabbix/{{ repo_zabbix_prev_version }}/rhel/9/x86_64/zabbix-release-{{ repo_zabbix_prev_version }}-5.el9.noarch.rpm"
+    pialma9:
+      url: "https://repo.zabbix.com/zabbix/{{ repo_zabbix_version }}/release/alma/9/noarch/zabbix-release-latest-{{ repo_zabbix_version }}.el9.noarch.rpm"
+      url_prev: "https://repo.zabbix.com/zabbix/{{ repo_zabbix_prev_version }}/release/alma/9/noarch/zabbix-release-latest-{{ repo_zabbix_prev_version }}.el9.noarch.rpm"
+    pialma10:
+      url: "https://repo.zabbix.com/zabbix/{{ repo_zabbix_version }}/release/rhel/10/noarch/zabbix-release-latest-{{ repo_zabbix_version }}.el10.noarch.rpm"
+      url_prev: "https://repo.zabbix.com/zabbix/{{ repo_zabbix_prev_version }}/rhel/10/x86_64/zabbix-release-{{ repo_zabbix_prev_version }}.el10.noarch.rpm"
+    bullseye:
+      url: "https://repo.zabbix.com/zabbix/{{ repo_zabbix_version }}/release/debian/pool/main/z/zabbix-release/zabbix-release_latest_{{ repo_zabbix_version }}+debian11_all.deb"
+    bookworm:
+      url: "https://repo.zabbix.com/zabbix/{{ repo_zabbix_version }}/release/debian/pool/main/z/zabbix-release/zabbix-release_latest_{{ repo_zabbix_version }}+debian12_all.deb"
+    pibookworm:
+      url: "https://repo.zabbix.com/zabbix/{{ repo_zabbix_version }}/release/raspbian/pool/main/z/zabbix-release/zabbix-release_latest_{{ repo_zabbix_version }}+debian12_all.deb"
+    bionic:
+      key: zabbix-2048.asc
+      url: "https://repo.zabbix.com/zabbix/{{ repo_zabbix_version }}/ubuntu"
+      url_prev: "https://repo.zabbix.com/zabbix/{{ repo_zabbix_prev_version }}/ubuntu"
+      pool: "{{ ansible_distribution_release }} main"
+    focal:
+      url: "https://repo.zabbix.com/zabbix/{{ repo_zabbix_version }}/release/ubuntu/pool/main/z/zabbix-release/zabbix-release_latest_{{ repo_zabbix_version }}+ubuntu20.04_all.deb"
