@@ -1,0 +1,91 @@
+# Debian apt sources setup
+
+- name: Install Debian dependencies
+  block:
+    - name: Install Debian dependencies for versions below 11
+      become: yes
+      when: ansible_distribution_major_version|int < 11
+      ansible.builtin.package:
+        name:
+          - python-apt
+        state: present
+
+    - name: Install Debian dependencies for version 11 and up
+      become: yes
+      when: ansible_distribution_major_version|int >= 11
+      ansible.builtin.package:
+        name:
+          - python3-apt
+          - python3-full
+        state: present
+
+- name: "Upload GPG keys for repositories"
+  when: "item['name']|default(item) in repository_list and debian_distribution in repository_list[item['name']|default(item)] and repository_list[item][debian_distribution]['key'] is defined and not ansible_check_mode"
+  with_items: "{{ repositories[debian_distribution] | default([]) }}"
+  tags:
+    - files
+    - repos
+  ansible.builtin.copy:
+    src: "debian/keys/{{ repository_list[item][debian_distribution]['key'] }}"
+    dest: "/tmp/{{ repository_list[item][debian_distribution]['key'] }}"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: "Setup GPG keys for repositories"
+  when: "item['name']|default(item) in repository_list and debian_distribution in repository_list[item['name']|default(item)] and repository_list[item][debian_distribution]['key'] is defined and not ansible_check_mode"
+  with_items: "{{ repositories[debian_distribution] | default([]) }}"
+  tags:
+    - files
+    - repos
+  ansible.builtin.apt_key:
+    file: "/tmp/{{ repository_list[item][debian_distribution]['key'] }}"
+
+- name: "Clean up GPG keys for repositories"
+  when: "item['name']|default(item) in repository_list and debian_distribution in repository_list[item['name']|default(item)] and repository_list[item][debian_distribution]['key'] is defined and not ansible_check_mode"
+  with_items: "{{ repositories[debian_distribution] | default([]) }}"
+  tags:
+    - files
+    - repos
+  ansible.builtin.file:
+    path: "/tmp/{{ repository_list[item][debian_distribution]['key'] }}"
+    state: absent
+
+- name: "Setup sources.list.d repositories from deb package"
+  when: "item['name']|default(item) in repository_list and debian_distribution in repository_list[item['name']|default(item)] and repository_list[item['name']|default(item)][debian_distribution]['url'].endswith('deb')"
+  with_items: "{{ repositories[debian_distribution] | default([]) }}"
+  tags:
+    - files
+    - repos
+  ansible.builtin.apt:
+    state: present
+    deb: "{{ repository_list[item][debian_distribution]['url'] }}"
+    dpkg_options: "force-confnew"
+    update_cache: no
+
+- name: "Setup sources.list.d repositories"
+  when: "item['name']|default(item) in repository_list and debian_distribution in repository_list[item['name']|default(item)] and repository_list[item['name']|default(item)][debian_distribution]['url'].endswith('/')"
+  with_items: "{{ repositories[debian_distribution] | default([]) }}"
+  tags:
+    - files
+    - repos
+  ansible.builtin.apt_repository:
+    state: present
+    repo: "deb {{ repository_list[item][debian_distribution]['url'] }} {{ repository_list[item][debian_distribution]['pool'] }}"
+    update_cache: no
+    filename: "{{ item }}"
+
+- name: "Add custom apt preferences file"
+  when: ansible_architecture == 'x86_64'
+  ansible.builtin.template:
+    src: "debian/92_custom.j2"
+    dest: "/etc/apt/preferences.d/92_custom"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: "Update apt cache"
+  tags:
+    - repos
+  ansible.builtin.apt:
+    update_cache: yes

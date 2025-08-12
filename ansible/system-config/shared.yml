@@ -32,7 +32,7 @@
     # Configuration #
     #################
     - { role: os_role,          tags: os_role }
-#    - { role: repos,            tags: repos }
+    - { role: repos,            tags: repos }
 #    - { role: packages,         tags: packages }
 #    - { role: rhel,             tags: rhel,               when: ansible_os_family == "RedHat" and ansible_distribution_major_version|int == 9 }
     - { role: accounting,       tags: accounting }

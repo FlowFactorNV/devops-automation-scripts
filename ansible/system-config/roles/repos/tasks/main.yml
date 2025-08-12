@@ -1,0 +1,84 @@
+# Install repositories
+
+- name: Alma Linux Rapsberry Pi Repos Block
+  when:
+    - ansible_distribution == 'AlmaLinux'
+    - ansible_architecture == 'aarch64'
+  block:
+    - ansible.builtin.import_tasks: almalinux.yml
+      vars:
+        alma_distribution: 'pialma9'
+      when: ansible_distribution_major_version|int == 9
+
+    - ansible.builtin.import_tasks: almalinux.yml
+      vars:
+        alma_distribution: 'pialma10'
+      when: ansible_distribution_major_version|int == 10
+
+- name: CentOS Repos Block
+  when: ansible_distribution == 'CentOS'
+  block:
+    - ansible.builtin.import_tasks: centos.yml
+      vars:
+        centos_distribution: 'centos9'
+      when: ansible_distribution_major_version|int == 9
+
+    - ansible.builtin.import_tasks: centos.yml
+      vars:
+        centos_distribution: 'centos10'
+      when: ansible_distribution_major_version|int == 10
+
+- name: Red Hat Repos Block
+  when: ansible_distribution == 'RedHat'
+  block:
+    - ansible.builtin.import_tasks: redhat.yml
+      vars:
+        redhat_distribution: 'rhel9'
+      when: ansible_distribution_major_version|int == 9
+
+    - ansible.builtin.import_tasks: redhat.yml
+      vars:
+        redhat_distribution: 'rhel10'
+      when: ansible_distribution_major_version|int == 10
+
+- name: Oracle Linux Repos Block
+  when: ansible_distribution == 'OracleLinux'
+  block:
+    - ansible.builtin.import_tasks: oracle.yml
+      vars:
+        oracle_distribution: 'ol9'
+      when: ansible_distribution_major_version|int == 9
+
+- name: Debian Repos Block
+  when:
+    - ansible_distribution == 'Debian'
+    - ansible_architecture == 'x86_64'
+  block:
+    - ansible.builtin.import_tasks: debian.yml
+      vars:
+        debian_distribution: 'bullseye'
+      when: ansible_distribution_major_version|int == 11
+
+    - ansible.builtin.import_tasks: debian.yml
+      vars:
+        debian_distribution: 'bookworm'
+      when: ansible_distribution_major_version|int == 12
+
+- name: Debian Raspberry Repos Block
+  when:
+    - ansible_distribution == 'Debian'
+    - ansible_architecture == 'aarch64'
+  block:
+    - ansible.builtin.import_tasks: debian.yml
+      vars:
+        debian_distribution: 'pibookworm'
+      when: ansible_distribution_major_version|int == 12
+
+- name: Ubuntu Repos Block
+  when: ansible_distribution == 'Ubuntu'
+  block:
+    - ansible.builtin.import_tasks: ubuntu.yml
+      vars:
+        ubuntu_distribution: 'focal'
+      when: ansible_distribution_major_version|int == 20
+
