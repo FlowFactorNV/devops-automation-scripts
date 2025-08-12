@@ -1,0 +1,9 @@
+---
+
+network_debian_packages:
+  - network-manager
+  - libteam-utils
+
+network_ubuntu_packages:
+  - network-manager
+  - libteam-utils
