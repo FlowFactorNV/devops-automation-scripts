@@ -1,0 +1,100 @@
+default:
+  image:
+    name: hashicorp/terraform
+    entrypoint: [""]
+  artifacts:
+    paths:
+      - $HOME/.config/gcloud
+    expire_in: 30 minutes
+
+variables:
+  # Replace <state-name> with your desired state name
+  TERRAFORM_BACKEND_URL: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/<state-name>
+
+# Caching .terraform allows init to run faster before each job
+cache:
+  paths:
+    - .terraform
+
+stages:
+  - authenticate
+  - validate
+  - plan
+  - apply
+  - destroy
+
+#######################################################################################################################
+# Templates and snippets
+#######################################################################################################################
+
+.terraform_init:
+  script:
+    - terraform init
+        -backend-config=address=${TERRAFORM_BACKEND_URL}
+        -backend-config=lock_address=${TERRAFORM_BACKEND_URL}/lock
+        -backend-config=unlock_address=${TERRAFORM_BACKEND_URL}/lock
+        -backend-config=username=${GITLAB_USERNAME}
+        -backend-config=password=${GITLAB_ACCESS_TOKEN}
+        -backend-config=lock_method=POST
+        -backend-config=unlock_method=DELETE
+        -backend-config=retry_wait_min=5
+
+#######################################################################################################################
+# Jobs
+#######################################################################################################################
+
+authenticate:
+  stage: authenticate
+  image: google/cloud-sdk
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: https://gitlab.com
+  script:
+    - echo "$GITLAB_OIDC_TOKEN" > "$CI_PROJECT_DIR/jwt.json"
+    - |
+      gcloud iam workload-identity-pools create-cred-config "$WORKLOAD_IDENTITY_PROVIDER" \
+        --service-account="$SERVICE_ACCOUNT" \
+        --output-file="$CI_PROJECT_DIR/creds.json" \
+        --credential-source-file="$CI_PROJECT_DIR/jwt.json"
+    - gcloud auth login --cred-file="$CI_PROJECT_DIR/creds.json"
+    - gcloud config set project "$PROJECT_ID"
+
+validate:
+  stage: validate
+  script:
+    - terraform init -backend=false # No need to init backend for validate
+    - terraform validate
+
+plan:
+  stage: plan
+  dependencies:
+    - validate
+  script:
+    - !reference [.terraform_init, script]
+    # Add any -var and -var-file options here.
+    - terraform plan 
+        -out=dev.tfplan
+
+  artifacts:
+    paths:
+      - ./plan.tfplan
+
+apply:
+  stage: apply
+  dependencies:
+    - plan
+  when: manual
+  script:
+    - !reference [.terraform_init, script]
+    - terraform apply -auto-approve plan.tfplan
+
+destroy:
+  stage: destroy
+  dependencies:
+    - apply
+  when: manual
+  script:
+    - !reference [.terraform_init, script]
+    # Add the same -var and -var-file options here as used in the plan stage.
+    - terraform destroy 
+        -auto-approve
