@@ -1,0 +1,5 @@
+---
+CHECK_CONNECTIVITY_host: "{{ inventory_hostname }}"
+CHECK_CONNECTIVITY_port: 22
+CHECK_CONNECTIVITY_timeout: 5
+CHECK_CONNECTIVITY_connect_timeout: 5

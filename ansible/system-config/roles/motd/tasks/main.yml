@@ -1,0 +1,46 @@
+---
+- name: Get CPU model name for x86_64
+  when: ansible_architecture == 'x86_64'
+  block:
+
+    - name: motd_getcpu_model | Retrieve CPU model
+      shell: cat /proc/cpuinfo | grep "model name" | awk -F":" '{print $2}'| sort -u | xargs
+      check_mode: no
+      register: MOTD_cpu_model
+
+#    - debug:
+#        msg: " CPU Model: {{ MOTD_cpu_model.stdout }}"
+
+    - name: motd | push motd
+      template:
+        src: motd_{{ MOTD_filename }}.j2
+        dest: /etc/motd
+        owner: root
+        group: root
+        mode: 0644
+        seuser: _default
+        serole: _default
+        setype: _default
+
+- name: Get CPU model name for aarch64
+  when: ansible_architecture == 'aarch64'
+  block:
+    - name: motd_getcpu_model | Retrieve CPU model
+      when: ansible_architecture == 'aarch64'
+      shell: /usr/bin/lscpu | grep -i "model name" | tr -d "[:blank:]" | awk -F":" '{print "ARM " $2}'
+      check_mode: no
+      register: MOTD_cpu_model
+
+#    - debug:
+#        msg: " CPU Model: {{ MOTD_cpu_model.stdout }}"
+
+    - name: motd | push motd
+      template:
+        src: motd_{{ MOTD_filename }}.j2
+        dest: /etc/motd
+        owner: root
+        group: root
+        mode: 0644
+        seuser: _default
+        serole: _default
+        setype: _default

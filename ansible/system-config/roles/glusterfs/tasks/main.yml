@@ -1,0 +1,141 @@
+---
+- name: Install required packages for GlusterFS
+  block:
+    - name: Install GlusterFS required packages
+      ansible.builtin.dnf:
+        name:
+          - glusterfs-server
+        state: present
+
+    - name: Install High Availability required packages
+      when: glusterfs_pacemaker
+      ansible.builtin.dnf:
+        name:
+          - pacemaker
+          - pcs
+        state: present
+
+    - name: Enable and start glusterd service
+      ansible.builtin.systemd:
+        name: glusterd
+        state: started
+        enabled: true
+
+- name: Set all the FirewallD rules
+  block:
+    - name: Setup FirewallD for Service GlusterFS
+      ansible.posix.firewalld:
+          service: glusterfs
+          permanent: yes
+          immediate: yes
+          state: enabled
+
+    - name: Setup FirewallD for Service HA
+      when: glusterfs_pacemaker
+      ansible.posix.firewalld:
+          service: high-availability
+          permanent: yes
+          immediate: yes
+          state: enabled
+
+- name: Configure Requirements for Ganesha NFS
+  when: glusterfs_ganesha_nfs
+  block:
+    - name: Install Ganesha NFS required packages
+      ansible.builtin.dnf:
+        name:
+          - nfs-ganesha
+          - glusterfs-ganesha
+        state: present
+
+    - name: Setup FirewallD for Service NFS
+      when: glusterfs_ganesha_nfs
+      ansible.posix.firewalld:
+          service: nfs
+          permanent: yes
+          immediate: yes
+          state: enabled
+
+    - name: Setup FirewallD for Service HA
+      ansible.posix.firewalld:
+          service: high-availability
+          permanent: yes
+          immediate: yes
+          state: enabled
+
+- name: Configure Requirements for OKD Services
+  when: glusterfs_okd_services
+  block:
+    - name: Install OKD required packages
+      ansible.builtin.dnf:
+        name:
+          - haproxy
+          - httpd
+        state: present
+
+    - name: Setup FirewallD for OKD API
+      ansible.posix.firewalld:
+          port: 6443/tcp
+          permanent: yes
+          immediate: yes
+          state: enabled
+
+    - name: Setup FirewallD for OKD Install HTTP Port
+      ansible.posix.firewalld:
+          port: 8080/tcp
+          permanent: yes
+          immediate: yes
+          state: enabled
+
+    - name: Setup FirewallD for GlusterFS
+      ansible.posix.firewalld:
+          port: 9000/tcp
+          permanent: yes
+          immediate: yes
+          state: enabled
+
+    - name: Setup FirewallD for for OKD usage
+      ansible.posix.firewalld:
+          port: 22623/tcp
+          permanent: yes
+          immediate: yes
+          state: enabled
+
+    - name: Setup FirewallD for Service HTTP
+      ansible.posix.firewalld:
+          service: http
+          permanent: yes
+          immediate: yes
+          state: enabled
+
+    - name: Setup FirewallD for Service HTTPS
+      ansible.posix.firewalld:
+          service: https
+          permanent: yes
+          immediate: yes
+          state: enabled
+
+    - name: Configure SELinux boolean httpd_read_user_content
+      ansible.posix.seboolean:
+        name: httpd_read_user_content
+        state: true
+        persistent: true
+
+    - name: Configure SELinux boolean httpd_use_fusefs
+      ansible.posix.seboolean:
+        name: httpd_use_fusefs
+        state: true
+        persistent: true
+
+    - name: Configure SELinux boolean haproxy_connect_any
+      ansible.posix.seboolean:
+        name: haproxy_connect_any
+        state: true
+        persistent: true
+
+    - name: "Make sure HTTPD runs on Port: 8080"
+      ansible.builtin.lineinfile:
+        path: /etc/httpd/conf/httpd.conf
+        regexp: '^Listen '
+        insertafter: '^#Listen '
+        line: Listen 8080

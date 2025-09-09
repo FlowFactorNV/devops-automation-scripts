@@ -1,0 +1,3 @@
+glusterfs_pacemaker: false
+glusterfs_ganesha_nfs: false
+glusterfs_okd_services: false

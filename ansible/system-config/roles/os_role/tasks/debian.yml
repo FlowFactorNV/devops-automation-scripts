@@ -1,0 +1,5 @@
+- name: Installing linuxlogo package on Debian
+  # ignore_errors: "{{True if packages_state == 'installed' else False}}"
+  ansible.builtin.package:
+    name: linuxlogo
+    state: present

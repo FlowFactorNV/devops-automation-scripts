@@ -1,0 +1,25 @@
+# requires package 'libselinux-python'
+# errors are ignored in case selinux is just not installed.
+# a better way would be to check for the presence of /etc/selinux/config
+# NOTE: disabling selinux requires a reboot.
+- name: Configure selinux on Red Hat derivatives
+  ignore_errors: true
+  tags: selinux
+  ansible.posix.selinux:
+      state: "{{ packages_selinux_state }}"
+      policy: "{{ packages_selinux_policy }}"
+
+#  When repos' fqdn are returning AAAA records and there are no IPV6
+#  connectivity, pycurl doesn't fallback on ipv4. Not tested when IPV6INIT=no.
+#  This task is also in the the 'archf.accounts' role as a few packages
+#  explicitly redquired for that roles installed only for the role a there as
+#  well.
+- name: Force yum on Red Hat <7 and derivatives to use ipv4
+  when: ansible_facts['distribution_major_version']|int < 7
+  tags: repos
+  ansible.builtin.lineinfile:
+    line: "ip_resolve=4"
+    insertafter: "^gpgcheck*"
+    dest: /etc/yum.conf
+    state: present
+
